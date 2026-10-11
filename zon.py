@@ -10,6 +10,8 @@ The protocol is documented in PROTOCOL.md.
 import argparse, base64, cmd, getpass, hashlib, hmac, ipaddress, json, os, random, select, shlex, socket
 import struct, subprocess, sys, time
 
+__version__ = "0.1.0"
+
 ETH_P_ZDP = 0xC1C1
 DISCOVERY_MAC = bytes.fromhex("01a0c5111111")
 DISCOVERY, QUERY, GET, SET = 0x8000, 0x0002, 0x4004, 0x4006
@@ -433,6 +435,7 @@ def main():
     p.add_argument("command", nargs="*", help="run one command (e.g. discover); without it, open the shell")
     p.add_argument("--json", action="store_true")
     p.add_argument("--debug", action="store_true", help="print every ZDP payload sent and received, in hex")
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     a = p.parse_intermixed_args()
     if os.geteuid() != 0:
         sys.exit("run as root (raw sockets)")
