@@ -4,13 +4,14 @@ protocol used by Zyxel One Network Utility (ZON). Interactive shell or one-shot 
 
   sudo ./zon.py eth0                       # discover, then a "zon>" shell
   sudo ./zon.py eth0 --json discover       # one command, JSON output
+  ./zon-gui.py                             # graphical front end
 
 The protocol is documented in PROTOCOL.md.
 """
-import argparse, base64, cmd, getpass, hashlib, hmac, ipaddress, json, os, random, select, shlex, socket
-import struct, subprocess, sys, time
+import argparse, base64, cmd, contextlib, getpass, hashlib, hmac, io, ipaddress, json, os, random, select, shlex
+import socket, struct, subprocess, sys, time
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 ETH_P_ZDP = 0xC1C1
 DISCOVERY_MAC = bytes.fromhex("01a0c5111111")
@@ -208,6 +209,11 @@ def status(msg):
         print(msg, file=sys.stderr)
 
 
+def public(devs):
+    """Device fields without the internal ones (leading underscore)."""
+    return {m: {k: v for k, v in f.items() if not k.startswith("_")} for m, f in devs.items()}
+
+
 def parse(frame):
     p = frame[14:]
     if len(p) < 35 or frame[12:14] != b"\xc1\xc1":
@@ -246,8 +252,7 @@ class Shell(cmd.Cmd):
 
     def out(self, obj):
         if self.json:
-            print(json.dumps({m: {k: v for k, v in f.items() if not k.startswith("_")} for m, f in obj.items()},
-                             indent=2)); return
+            print(json.dumps(public(obj), indent=2)); return
         for mac, f in obj.items():
             print(mac)
             for k, v in f.items():
@@ -263,10 +268,12 @@ class Shell(cmd.Cmd):
             raise KeyError(f"device {ref} not found, run discover")
         return mac, self.devs[mac]
 
+    def ask(self, prompt, hidden=False):
+        return getpass.getpass(prompt) if hidden and sys.stdin.isatty() else input(prompt)  # stdin when piped
+
     def key(self, mac, dev):
         if mac not in self.pw:
-            ask = getpass.getpass if sys.stdin.isatty() else input  # read stdin when piped or scripted
-            pw = ask(f"password for {mac} ({dev.get('Device Model', '')}, input hidden): ")
+            pw = self.ask(f"password for {mac} ({dev.get('Device Model', '')}, input hidden): ", True)
             if not pw:
                 raise ValueError("empty password, nothing sent")
             self.pw[mac] = pw
@@ -366,7 +373,7 @@ class Shell(cmd.Cmd):
 
     def set(self, ref, pairs, confirm=None, restarts=False):
         mac, d = self.dev(ref)
-        if confirm and input(f"{confirm} on {mac} ({d.get('Device Model', '')})? [yes/no] ").strip().lower() != "yes":
+        if confirm and self.ask(f"{confirm} on {mac} ({d.get('Device Model', '')})? [yes/no] ").strip().lower() != "yes":
             return print("cancelled")
         reply = self.zdp.request(bytes.fromhex(mac.replace(":", "")), SET, pairs, self.key(mac, d))
         if restarts and not reply:  # the device restarts before answering
@@ -414,9 +421,8 @@ class Shell(cmd.Cmd):
             return print("the device did not answer the salt query")
         d.update(fresh)
         key = self.key(mac, d)
-        ask = getpass.getpass if sys.stdin.isatty() else input
-        new = ask("new password: ")
-        if new != ask("again: ") or not 4 <= len(new) <= 200:
+        new = self.ask("new password: ", True)
+        if new != self.ask("again: ", True) or not 4 <= len(new) <= 200:
             return print("passwords differ or length is outside 4-200")
         val = new_password_tlv(d, new)
         if self.check(mac, self.zdp.request(dst, SET, [(23, rc4(key, val))], key)) is not None:
@@ -429,17 +435,44 @@ class Shell(cmd.Cmd):
         self.pw.pop(self.dev(arg)[0], None) if arg else self.pw.clear()
 
 
+def serve(sh):
+    """--serve, for zon-gui.py: one JSON request per line on stdin, {"cmd": "get 3 serial", "answers": [...]},
+    where answers replace the prompts in order (confirmation, password, new password). One JSON reply per
+    line on stdout: the text the command printed, every device, and the MACs with a stored password."""
+    sys.stderr = open(os.devnull, "w")  # status lines; nobody reads them
+    out = sys.stdout
+    for line in sys.stdin:
+        req = json.loads(line)
+        answers = iter(req.get("answers", []))
+        def ask(prompt, hidden=False):
+            a = next(answers, None)
+            if a is None:
+                raise ValueError(f"no answer for: {prompt.strip()}")
+            return a
+        sh.ask = ask
+        sh.stdout = buf = io.StringIO()  # cmd.Cmd writes help and "Unknown syntax" here
+        with contextlib.redirect_stdout(buf):
+            try:
+                sh.onecmd(req["cmd"])
+            except Exception as e:
+                print("error:", e)
+        print(json.dumps({"output": buf.getvalue(), "devs": public(sh.devs), "auth": list(sh.pw)}), file=out, flush=True)
+
+
 def main():
     p = argparse.ArgumentParser(description="Zyxel ZON for Linux (ZDP protocol)")
     p.add_argument("iface")
     p.add_argument("command", nargs="*", help="run one command (e.g. discover); without it, open the shell")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--serve", action="store_true", help="JSON requests on stdin, replies on stdout (zon-gui.py)")
     p.add_argument("--debug", action="store_true", help="print every ZDP payload sent and received, in hex")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     a = p.parse_intermixed_args()
     if os.geteuid() != 0:
         sys.exit("run as root (raw sockets)")
     sh = Shell(ZDP(a.iface, a.debug), a.json)
+    if a.serve:
+        return serve(sh)
     if a.command:
         if a.command[0] != "discover":
             sh.scan()

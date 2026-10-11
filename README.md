@@ -59,6 +59,25 @@ sudo ./zon.py eth0 --json discover > inventory.json
 sudo ./zon.py eth0 get 3 serial
 ```
 
+## Graphical interface
+
+`zon-gui.py` shows the same device list as ZON on Windows: pick the interface, press Discover, select a device and use the buttons on the right (read all fields, edit IP/name/location, locate, save, renew, change password, reboot, factory reset).
+
+![Device list with the actions for the selected device](screenshots/main.png)
+
+<p>
+  <img src="screenshots/edit.png" alt="Edit settings dialog" width="49%">
+  <img src="screenshots/about.png" alt="About dialog with version and update check" width="49%">
+</p>
+
+```
+./zon-gui.py [eth0]
+```
+
+Start it as your normal user. It runs `zon.py --serve` as root through `pkexec`, so the system asks for your password once per interface. It needs `zon.py` in the same directory, Tkinter (`python3-tk` on Debian/Ubuntu, `python3-tkinter` on Fedora) and polkit.
+
+At startup the GUI asks the GitHub API for the latest release and shows a link in the toolbar when a newer version exists. Nothing else is sent. About shows the version and checks again on request.
+
 ## Status
 
 Some of this has run against real devices and some has only run against a simulated device built from my reading of ZON. The table says which is which, so you know what to report if something breaks.
@@ -70,6 +89,7 @@ Some of this has run against real devices and some has only run against a simula
 | `set`, `save`, `locate`, `renew`, `factory_reset` | Implemented, tested against a simulated device only. They use the same signed request as `reboot` |
 | `passwd` | Implemented, tested against a simulated device only. Try it first on a device you can reset by hand |
 | Firmware upgrade over TFTP | Not implemented |
+| `zon-gui.py` | New. Tested against a simulated backend only |
 
 If an authenticated command works or fails on your hardware, please open an issue with the model, the firmware version and the output of `show N`. The salt and the Password Security mode in that output are not secrets.
 
@@ -89,6 +109,8 @@ curl -O https://raw.githubusercontent.com/rainpwn/zyxel-zon-linux/main/zon.py
 chmod +x zon.py
 sudo ./zon.py eth0
 ```
+
+For the graphical interface, download `zon-gui.py` next to it as well.
 
 ## Passwords
 
