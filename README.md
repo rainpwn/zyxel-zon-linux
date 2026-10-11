@@ -2,6 +2,8 @@
 
 [![Release](https://img.shields.io/github/v/release/rainpwn/zyxel-zon-linux)](https://github.com/rainpwn/zyxel-zon-linux/releases/latest)
 
+[![Buy me a coffee](https://img.shields.io/badge/buy_me_a_coffee-1a1d21?style=for-the-badge&labelColor=08090a&logo=buymeacoffee&logoColor=9FEF00)](https://buymeacoffee.com/rainpwn)
+
 Discover and manage Zyxel switches, access points and firewalls from Linux, using the same layer 2 protocol as Zyxel One Network Utility (ZON).
 
 ## Why this exists
@@ -103,6 +105,10 @@ This is an independent project. It is not affiliated with, endorsed by or suppor
 The protocol was recovered by decompiling ZON for the sole purpose of interoperability with Linux, which Article 6 of EU Directive 2009/24/EC allows when the information is not otherwise available. This note is not legal advice.
 
 The tool can reboot devices, change their addresses and reset them to factory defaults. Use it at your own risk, and read the Status section before running write commands on production equipment.
+
+## Support
+
+If this tool saved you some time, you can [buy me a coffee](https://buymeacoffee.com/rainpwn).
 
 ## License
 
