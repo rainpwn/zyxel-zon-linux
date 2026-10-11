@@ -1,5 +1,7 @@
 # zyxel-zon-linux
 
+[![Release](https://img.shields.io/github/v/release/rainpwn/zyxel-zon-linux)](https://github.com/rainpwn/zyxel-zon-linux/releases/latest)
+
 Discover and manage Zyxel switches, access points and firewalls from Linux, using the same layer 2 protocol as Zyxel One Network Utility (ZON).
 
 ## Why this exists
