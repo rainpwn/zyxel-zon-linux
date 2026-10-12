@@ -1,0 +1,68 @@
+name: Device report
+description: A command worked or failed on your Zyxel device
+title: "[device] MODEL FIRMWARE: COMMAND"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing. If you are new to the tool, start with `discover` and `get`, which change nothing on the device.
+  - type: input
+    id: model
+    attributes:
+      label: Device model
+      placeholder: XGS1930-28
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      placeholder: V4.50(ABHT.7)
+    validations:
+      required: true
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Used from
+      options:
+        - zon.py (command line)
+        - zon-gui.py (graphical interface)
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      placeholder: get 3 serial
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Worked
+        - Failed or wrong output
+    validations:
+      required: true
+  - type: textarea
+    id: show
+    attributes:
+      label: Output of `show N` for this device
+      description: The salt and the Password Security mode are not secrets. Mask IP addresses or names if you prefer.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: What the command printed
+      description: >-
+        If discover or query fails, run it again with `--debug` and paste the hex lines too. Do not post `--debug`
+        output of commands that ask for a password: the signed packets let anyone try to guess the password offline.
+      render: text
+  - type: input
+    id: system
+    attributes:
+      label: Linux distribution and Python version
+      placeholder: Debian 12, Python 3.11

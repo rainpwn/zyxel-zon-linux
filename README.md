@@ -6,6 +6,8 @@
 
 Discover and manage Zyxel switches, access points and firewalls from Linux, using the same layer 2 protocol as Zyxel One Network Utility (ZON).
 
+Tested on XGS1930-28, XGS1930-28HP, XGS1935-28, WAX650S, WAC6503D-S and ATP700. See [Status](#status) for what has been tested on which device, and [report your device](https://github.com/rainpwn/zyxel-zon-linux/issues/new?template=device-report.yml) if it is not listed.
+
 ## Why this exists
 
 I run networks for clients as an MSP, and most of them are built on Zyxel gear. ZON is the tool I reach for whenever I land on a network: it finds every Zyxel device on the segment in a few seconds, with model, firmware, IP and name, and it handles the routine maintenance that follows.
