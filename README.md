@@ -14,7 +14,7 @@ I run networks for clients as an MSP, and most of them are built on Zyxel gear. 
 
 ZON only runs on Windows. My workstation runs Linux, so the answer was simply that I could not do this from my own machine. There is no Linux build, no documented protocol, and no open-source replacement.
 
-So I reverse engineered ZON and wrote one. `zon.py` is a single Python file with no dependencies outside the standard library.
+So I reverse engineered ZON and wrote one. `zon.py` is a single Python file with no dependencies outside the standard library. `zon-gui.py` adds a graphical interface on top of it.
 
 ## What it does
 
@@ -91,7 +91,7 @@ Some of this has run against real devices and some has only run against a simula
 | `set`, `save`, `locate`, `renew`, `factory_reset` | Implemented, tested against a simulated device only. They use the same signed request as `reboot` |
 | `passwd` | Implemented, tested against a simulated device only. Try it first on a device you can reset by hand |
 | Firmware upgrade over TFTP | Not implemented |
-| `zon-gui.py` | New. Tested against a simulated backend only |
+| `zon-gui.py` | New in 0.2.0. Tested on Linux with real devices |
 
 If an authenticated command works or fails on your hardware, please open an issue with the model, the firmware version and the output of `show N`. The salt and the Password Security mode in that output are not secrets.
 
@@ -112,7 +112,13 @@ chmod +x zon.py
 sudo ./zon.py eth0
 ```
 
-For the graphical interface, download `zon-gui.py` next to it as well.
+For the graphical interface, download `zon-gui.py` next to it as well:
+
+```
+curl -O https://raw.githubusercontent.com/rainpwn/zyxel-zon-linux/main/zon-gui.py
+chmod +x zon-gui.py
+./zon-gui.py
+```
 
 ## Passwords
 
